@@ -17,11 +17,11 @@
 
 stdenv.mkDerivation rec {
   pname = "yelp";
-  version = "41.2";
+  version = "42.beta";
 
   src = fetchurl {
     url = "mirror://gnome/sources/yelp/${lib.versions.major version}/${pname}-${version}.tar.xz";
-    sha256 = "sha256-sAvwM/At15ttPyVQMccd+NbtOOVSyHC485GjdHJMQ8U=";
+    sha256 = "sha256-cT187uTnI9ECP6Ox4HN4MUcZKRctNGhC/tBHFO6zkK8=";
   };
 
   nativeBuildInputs = [
