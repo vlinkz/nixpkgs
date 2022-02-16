@@ -1,8 +1,9 @@
-{ lib, stdenv
+{ stdenv
+, lib
 , fetchurl
 , pkg-config
 , glib
-, gtk3
+, gtk4
 , libgee
 , gettext
 , vala
@@ -14,11 +15,11 @@
 
 stdenv.mkDerivation rec {
   pname = "libgnome-games-support";
-  version = "1.8.2";
+  version = "2.0.beta.2";
 
   src = fetchurl {
     url = "mirror://gnome/sources/${pname}/${lib.versions.majorMinor version}/${pname}-${version}.tar.xz";
-    sha256 = "KENGBKewOHMawCMXMTiP8QT1ZbsjMMwk54zaBM/T730=";
+    sha256 = "jB7lF4q8wppOgUJnuMXvo6DvmwkxbAAgCQ4Ex6OYxNw=";
   };
 
   nativeBuildInputs = [
@@ -34,9 +35,9 @@ stdenv.mkDerivation rec {
   ];
 
   propagatedBuildInputs = [
-    # Required by libgnome-games-support-1.pc
+    # Required by libgnome-games-support-2.pc
     glib
-    gtk3
+    gtk4
     libgee
   ];
 
@@ -51,7 +52,7 @@ stdenv.mkDerivation rec {
   meta = with lib; {
     description = "Small library intended for internal use by GNOME Games, but it may be used by others";
     homepage = "https://wiki.gnome.org/Apps/Games";
-    license = licenses.lgpl3;
+    license = licenses.lgpl3Plus;
     maintainers = teams.gnome.members;
     platforms = platforms.unix;
   };
