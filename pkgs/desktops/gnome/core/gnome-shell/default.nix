@@ -46,6 +46,7 @@
 , evolution-data-server
 , gtk3
 , gtk4
+, libadwaita
 , sassc
 , systemd
 , pipewire
@@ -66,13 +67,13 @@ let
 in
 stdenv.mkDerivation rec {
   pname = "gnome-shell";
-  version = "41.3";
+  version = "42.beta";
 
   outputs = [ "out" "devdoc" ];
 
   src = fetchurl {
     url = "mirror://gnome/sources/gnome-shell/${lib.versions.major version}/${pname}-${version}.tar.xz";
-    sha256 = "Hj36KgvklFQYK0rOd/EdENP1uYjvD8tzK3MTVzlJ3tE=";
+    sha256 = "2jVPkpxtq0gK/7GpzpFyVRc5CuIfV0R/TB8QW/HR0Rc=";
   };
 
   patches = [
@@ -142,6 +143,7 @@ stdenv.mkDerivation rec {
     libical
     gtk3
     gtk4
+    libadwaita
     gdm
     geoclue2
     adwaita-icon-theme
