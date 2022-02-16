@@ -29,11 +29,11 @@
 
 stdenv.mkDerivation rec {
   pname = "gnome-contacts";
-  version = "41.0";
+  version = "42.alpha";
 
   src = fetchurl {
     url = "mirror://gnome/sources/gnome-contacts/${lib.versions.major version}/${pname}-${version}.tar.xz";
-    sha256 = "Y+MUm10UdbeiaYAFu191DzyApzVxcWDjnfjP3+v8zfA=";
+    sha256 = "nTMBGn3/FW/zCNwgGiFSE6vV3x7lyZxKnmc4atwoTA8=";
   };
 
   propagatedUserEnvPkgs = [
