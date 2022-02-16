@@ -5,7 +5,6 @@
 , appstream-glib
 , desktop-file-utils
 , fetchurl
-, fetchpatch
 , flatpak
 , gnome
 , libgit2-glib
@@ -40,23 +39,14 @@
 
 stdenv.mkDerivation rec {
   pname = "gnome-builder";
-  version = "41.3";
+  version = "42.alpha1";
 
   outputs = [ "out" "devdoc" ];
 
   src = fetchurl {
     url = "mirror://gnome/sources/${pname}/${lib.versions.major version}/${pname}-${version}.tar.xz";
-    sha256 = "4iUPyOnp8gAsRS5ZUNgmhXNNPESAs1Fnq1CKyHAlCeE=";
+    sha256 = "AtJ+Op2ChWWgcREWFb3zqyp1CzBb/469BwJXK3DuWnc=";
   };
-
-  patches = [
-    # Fix build with latest libportal
-    # https://gitlab.gnome.org/GNOME/gnome-builder/-/merge_requests/486
-    (fetchpatch {
-      url = "https://gitlab.gnome.org/GNOME/gnome-builder/-/commit/b3bfa0df53a3749c3b73cb6c4bad5cab3fa549a1.patch";
-      sha256 = "B/uCcYavFvOAPhLHZ4MRNENDd6VytILiGYwDZRUSxTE=";
-    })
-  ];
 
   nativeBuildInputs = [
     appstream-glib
