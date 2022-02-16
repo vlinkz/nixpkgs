@@ -32,6 +32,8 @@
 , nspr
 , icu
 , libcanberra-gtk3
+, geocode-glib
+, cmark
 , bogofilter
 , gst_all_1
 , procps
@@ -42,11 +44,11 @@
 
 stdenv.mkDerivation rec {
   pname = "evolution";
-  version = "3.42.3";
+  version = "3.43.2";
 
   src = fetchurl {
     url = "mirror://gnome/sources/evolution/${lib.versions.majorMinor version}/${pname}-${version}.tar.xz";
-    sha256 = "RGKeagIojsEApm/VlBOgaLa5zWJL7TJVqimhZuom0LY=";
+    sha256 = "nBAQtBOGT5fE4VB96MWaNR9LMXT3DSIiig+dXjmz3pg=";
   };
 
   nativeBuildInputs = [
@@ -77,6 +79,8 @@ stdenv.mkDerivation rec {
     highlight
     icu
     libcanberra-gtk3
+    geocode-glib
+    cmark
     libgdata
     libgweather
     libical
