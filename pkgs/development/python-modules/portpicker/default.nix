@@ -1,6 +1,7 @@
 { buildPythonPackage
 , lib
 , fetchPypi
+, psutil
 }:
 
 buildPythonPackage rec {
@@ -12,6 +13,10 @@ buildPythonPackage rec {
     inherit pname version;
     sha256 = "e13b148008adeb2793cf8b55bcd20fdcec4f763f2d3bf3c45f5e5e5d1df7d228";
   };
+
+  propagatedBuildInputs = [
+    psutil
+  ];
 
   meta = {
     description = "A library to choose unique available network ports.";
