@@ -15,6 +15,7 @@
 , gnome
 , gtk4
 , evolution-data-server
+, libical
 , libsoup
 , glib
 , gsettings-desktop-schemas
@@ -49,7 +50,8 @@ stdenv.mkDerivation rec {
 
   buildInputs = [
     gtk4
-    # evolution-data-server # waiting for GTK4 port
+    evolution-data-server # waiting for GTK4 port
+    libical
     libsoup
     glib
     libdazzle
