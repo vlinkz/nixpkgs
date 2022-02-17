@@ -5,6 +5,7 @@
 , webkitgtk
 , pkg-config
 , gtk3
+, libhandy
 , glib
 , gnome
 , sqlite
@@ -33,6 +34,7 @@ stdenv.mkDerivation rec {
 
   buildInputs = [
     gtk3
+    libhandy
     glib
     webkitgtk
     sqlite
