@@ -28,6 +28,13 @@ stdenv.mkDerivation rec {
     sha256 = "cls+s0/G0h7cgLbmhHKLMIix+hRPCipNPpYFx6jz3Pg=";
   };
 
+  patches = [
+    # Headers depend on glib but it is only listed in Requires.private,
+    # which does not influence Cflags on non-static builds in nixpkgs’s
+    # pkg-config. Let’s add it to Requires to ensure Cflags are set correctly.
+    ./fix-pkgconfig.patch
+  ];
+
   nativeBuildInputs = [
     meson
     ninja
