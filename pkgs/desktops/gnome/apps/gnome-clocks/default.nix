@@ -8,7 +8,7 @@
 , wrapGAppsHook
 , itstool
 , desktop-file-utils
-, vala
+, vala_0_56
 , gobject-introspection
 , libxml2
 , gtk4
@@ -35,7 +35,7 @@ stdenv.mkDerivation rec {
   };
 
   nativeBuildInputs = [
-    vala
+    vala_0_56
     meson
     ninja
     pkg-config
