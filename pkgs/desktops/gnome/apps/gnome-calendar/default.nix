@@ -1,6 +1,7 @@
 { stdenv
 , lib
 , fetchurl
+, fetchpatch
 , meson
 , ninja
 , pkg-config
@@ -31,12 +32,13 @@ stdenv.mkDerivation rec {
     sha256 = "TTNcGt7tjqLjSuHmt5uVtlFpaHsmjjlsek4l9+rZdlE=";
   };
 
-  passthru = {
-    updateScript = gnome.updateScript {
-      packageName = pname;
-      attrPath = "gnome.${pname}";
-    };
-  };
+  patches = [
+    # Fix postinstall referring to gtk-update-icon-cache
+    (fetchpatch {
+      url = "https://gitlab.gnome.org/GNOME/gnome-calendar/-/commit/b7e84c432664f76f10680c04781ab5c3cafdd247.patch";
+      sha256 = "ahJwspsnU6uT0mc1W+aWPWgp/9+lVF8H+dAK/IV7qgM=";
+    })
+  ];
 
   nativeBuildInputs = [
     meson
@@ -62,10 +64,12 @@ stdenv.mkDerivation rec {
     libadwaita
   ];
 
-  postPatch = ''
-    chmod +x build-aux/meson/meson_post_install.py # patchShebangs requires executable file
-    patchShebangs build-aux/meson/meson_post_install.py
-  '';
+  passthru = {
+    updateScript = gnome.updateScript {
+      packageName = pname;
+      attrPath = "gnome.${pname}";
+    };
+  };
 
   meta = with lib; {
     homepage = "https://wiki.gnome.org/Apps/Calendar";
