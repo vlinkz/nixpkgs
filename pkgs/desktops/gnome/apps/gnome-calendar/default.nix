@@ -6,7 +6,6 @@
 , ninja
 , pkg-config
 , wrapGAppsHook4
-, libdazzle
 , libgweather
 , geoclue2
 , geocode-glib
@@ -56,7 +55,6 @@ stdenv.mkDerivation rec {
     libical
     libsoup
     glib
-    libdazzle
     libgweather
     geoclue2
     geocode-glib
