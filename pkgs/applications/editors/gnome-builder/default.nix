@@ -93,10 +93,6 @@ stdenv.mkDerivation rec {
     xvfb-run
   ];
 
-  prePatch = ''
-    patchShebangs build-aux/meson/post_install.py
-  '';
-
   mesonFlags = [
     "-Ddocs=true"
 
@@ -111,6 +107,15 @@ stdenv.mkDerivation rec {
   # Some tests fail due to being unable to find the Vte typelib, and I don't
   # understand why. Somebody should look into fixing this.
   doCheck = true;
+
+  postPatch = ''
+    patchShebangs build-aux/meson/post_install.py
+
+    # Fix building docs
+    # https://gitlab.gnome.org/GNOME/gnome-builder/-/merge_requests/530
+    substituteInPlace src/libide/lsp/ide-lsp-service.c \
+      --replace "[enum@Gio.SubprocessFlags]" "[flags@Gio.SubprocessFlags]"
+  '';
 
   checkPhase = ''
     export NO_AT_BRIDGE=1
