@@ -466,6 +466,7 @@ in
             gnome-calendar
             gnome-characters
             gnome-clocks
+            pkgs.gnome-console
             gnome-contacts
             gnome-font-viewer
             gnome-logs
@@ -494,7 +495,6 @@ in
       programs.file-roller.enable = notExcluded pkgs.gnome.file-roller;
       programs.geary.enable = notExcluded pkgs.gnome.geary;
       programs.gnome-disks.enable = notExcluded pkgs.gnome.gnome-disk-utility;
-      programs.gnome-terminal.enable = notExcluded pkgs.gnome.gnome-terminal;
       programs.seahorse.enable = notExcluded pkgs.gnome.seahorse;
       services.gnome.sushi.enable = notExcluded pkgs.gnome.sushi;
 
