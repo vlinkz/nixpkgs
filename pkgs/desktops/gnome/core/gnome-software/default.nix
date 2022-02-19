@@ -13,7 +13,7 @@
 , glib
 , appstream
 , libsoup
-, libhandy
+, libadwaita
 , polkit
 , isocodes
 , gspell
@@ -21,7 +21,7 @@
 , gobject-introspection
 , flatpak
 , fwupd
-, gtk3
+, gtk4
 , gsettings-desktop-schemas
 , gnome-desktop
 , libxmlb
@@ -73,12 +73,12 @@ stdenv.mkDerivation rec {
   ];
 
   buildInputs = [
-    gtk3
+    gtk4
     glib
     packagekit
     appstream
     libsoup
-    libhandy
+    libadwaita
     gsettings-desktop-schemas
     gnome-desktop
     gspell
@@ -97,6 +97,8 @@ stdenv.mkDerivation rec {
     "-Dgudev=false"
     # FIXME: package malcontent parental controls
     "-Dmalcontent=false"
+    # Needs flatpak to upgrade
+    "-Dsoup2=true"
   ] ++ lib.optionals (!withFwupd) [
     "-Dfwupd=false"
   ];
