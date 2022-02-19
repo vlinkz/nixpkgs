@@ -1,0 +1,273 @@
+From 59b8663ba971de6b7833efac6e4b427128787266 Mon Sep 17 00:00:00 2001
+From: Jan Tojnar <jtojnar@gmail.com>
+Date: Sat, 19 Feb 2022 01:52:52 +0100
+Subject: [PATCH] M!102 - Port to libgweather4
+
+Adds support for linking against gweather4 (pass -DWITH_GWEATHER4=ON).
+
+Closes https://gitlab.gnome.org/GNOME/evolution/-/merge_requests/102
+---
+ CMakeLists.txt                                | 10 ++++-
+ .../e-weather-location-entry.c                | 44 +++++++++++++++++++
+ .../evolution-cal-config-weather.c            | 36 ++++++++++++++-
+ 3 files changed, 87 insertions(+), 3 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 7247d65f16..1ba2165b4d 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -92,6 +92,7 @@ set(geocode_glib_minimum_version 3.10)
+ set(gladeui_minimum_version 3.10.0)
+ set(gnome_autoar_minimum_version 0.1.1)
+ set(gweather_minimum_version 3.10)
++set(gweather4_minimum_version 3.91.0)
+ set(libcanberra_gtk_minimum_version 0.25)
+ set(libnotify_minimum_version 0.7)
+ set(libunity_minimum_version 7.1.4)
+@@ -668,7 +669,14 @@ endif(ENABLE_TEXT_HIGHLIGHT)
+ add_printable_option(ENABLE_WEATHER "Enable weather calendars" ON)
+ 
+ if(ENABLE_WEATHER)
+-	pkg_check_modules_for_option(ENABLE_WEATHER "weather calendar" GWEATHER gweather-3.0>=${gweather_minimum_version})
++	add_printable_variable(WITH_GWEATHER4 "Use GWeather 4 instead of 3" OFF)
++
++	if(WITH_GWEATHER4)
++		pkg_check_modules_for_option(ENABLE_WEATHER "weather calendar" GWEATHER gweather4>=${gweather4_minimum_version})
++	else(WITH_GWEATHER4)
++		pkg_check_modules_for_option(ENABLE_WEATHER "weather calendar" GWEATHER gweather-3.0>=${gweather_minimum_version})
++	endif(WITH_GWEATHER4)
++
+ 	pkg_check_modules_for_option(ENABLE_WEATHER "weather calendar" GEO geocode-glib-1.0>=${geocode_glib_minimum_version})
+ endif(ENABLE_WEATHER)
+ 
+diff --git a/src/modules/cal-config-weather/e-weather-location-entry.c b/src/modules/cal-config-weather/e-weather-location-entry.c
+index f4fb48c403..a1364920a3 100644
+--- a/src/modules/cal-config-weather/e-weather-location-entry.c
++++ b/src/modules/cal-config-weather/e-weather-location-entry.c
+@@ -125,9 +125,17 @@ finalize (GObject *object)
+ 	priv = entry->priv;
+ 
+ 	if (priv->location)
++		#if GWEATHER_CHECK_VERSION(3, 91, 0)
++		g_object_unref (priv->location);
++		#else
+ 		gweather_location_unref (priv->location);
++		#endif
+ 	if (priv->top)
++		#if GWEATHER_CHECK_VERSION(3, 91, 0)
++		g_object_unref (priv->top);
++		#else
+ 		gweather_location_unref (priv->top);
++		#endif
+ 	if (priv->model)
+ 		g_object_unref (priv->model);
+ 
+@@ -321,7 +329,11 @@ set_location_internal (EWeatherLocationEntry *entry,
+ 	priv = entry->priv;
+ 
+ 	if (priv->location)
++		#if GWEATHER_CHECK_VERSION(3, 91, 0)
++		g_object_unref (priv->location);
++		#else
+ 		gweather_location_unref (priv->location);
++		#endif
+ 
+ 	g_return_if_fail (iter == NULL || loc == NULL);
+ 
+@@ -334,7 +346,11 @@ set_location_internal (EWeatherLocationEntry *entry,
+ 		priv->custom_text = FALSE;
+ 		g_free (name);
+ 	} else if (loc) {
++		#if GWEATHER_CHECK_VERSION(3, 91, 0)
++		priv->location = g_object_ref (loc);
++		#else
+ 		priv->location = gweather_location_ref (loc);
++		#endif
+ 		gtk_entry_set_text (GTK_ENTRY (entry), gweather_location_get_name (loc));
+ 		priv->custom_text = FALSE;
+ 	} else {
+@@ -384,11 +400,19 @@ e_weather_location_entry_set_location (EWeatherLocationEntry *entry,
+ 				    -1);
+ 		if (gweather_location_equal (loc, cmploc)) {
+ 			set_location_internal (entry, model, &iter, NULL);
++			#if GWEATHER_CHECK_VERSION(3, 91, 0)
++			g_object_unref (cmploc);
++			#else
+ 			gweather_location_unref (cmploc);
++			#endif
+ 			return;
+ 		}
+ 
++		#if GWEATHER_CHECK_VERSION(3, 91, 0)
++		g_object_unref (cmploc);
++		#else
+ 		gweather_location_unref (cmploc);
++		#endif
+ 	} while (gtk_tree_model_iter_next (model, &iter));
+ 
+ 	set_location_internal (entry, model, NULL, loc);
+@@ -411,7 +435,11 @@ e_weather_location_entry_get_location (EWeatherLocationEntry *entry)
+ 	g_return_val_if_fail (E_WEATHER_IS_LOCATION_ENTRY (entry), NULL);
+ 
+ 	if (entry->priv->location)
++		#if GWEATHER_CHECK_VERSION(3, 91, 0)
++		return g_object_ref (entry->priv->location);
++		#else
+ 		return gweather_location_ref (entry->priv->location);
++		#endif
+ 	else
+ 		return NULL;
+ }
+@@ -474,14 +502,22 @@ e_weather_location_entry_set_city (EWeatherLocationEntry *entry,
+ 
+ 		cmpcode = gweather_location_get_code (cmploc);
+ 		if (!cmpcode || strcmp (cmpcode, code) != 0) {
++			#if GWEATHER_CHECK_VERSION(3, 91, 0)
++			g_object_unref (cmploc);
++				#else
+ 			gweather_location_unref (cmploc);
++			#endif
+ 			continue;
+ 		}
+ 
+ 		if (city_name) {
+ 			cmpname = gweather_location_get_city_name (cmploc);
+ 			if (!cmpname || strcmp (cmpname, city_name) != 0) {
++				#if GWEATHER_CHECK_VERSION(3, 91, 0)
++				g_object_unref (cmploc);
++					#else
+ 				gweather_location_unref (cmploc);
++				#endif
+ 				g_free (cmpname);
+ 				continue;
+ 			}
+@@ -489,7 +525,11 @@ e_weather_location_entry_set_city (EWeatherLocationEntry *entry,
+ 		}
+ 
+ 		set_location_internal (entry, model, &iter, NULL);
++		#if GWEATHER_CHECK_VERSION(3, 91, 0)
++		g_object_unref (cmploc);
++			#else
+ 		gweather_location_unref (cmploc);
++		#endif
+ 		return TRUE;
+ 	} while (gtk_tree_model_iter_next (model, &iter));
+ 
+@@ -611,7 +651,11 @@ fill_location_entry_model (GtkListStore *store,
+ 		break;
+ 	}
+ 
++	#if GWEATHER_CHECK_VERSION(3, 91, 0)
++	g_clear_object (&child);
++	#else
+ 	g_clear_pointer (&child, gweather_location_unref);
++	#endif
+ }
+ 
+ static gchar *
+diff --git a/src/modules/cal-config-weather/evolution-cal-config-weather.c b/src/modules/cal-config-weather/evolution-cal-config-weather.c
+index 423d6e2357..5efd142791 100644
+--- a/src/modules/cal-config-weather/evolution-cal-config-weather.c
++++ b/src/modules/cal-config-weather/evolution-cal-config-weather.c
+@@ -75,7 +75,11 @@ cal_config_weather_location_to_string (GBinding *binding,
+ 	location = g_value_get_boxed (source_value);
+ 	#if GWEATHER_CHECK_VERSION(3, 39, 0)
+ 	if (location)
++		#if GWEATHER_CHECK_VERSION(3, 91, 0)
++		g_object_ref (location);
++		#else
+ 		gweather_location_ref (location);
++		#endif
+ 	#endif
+ 
+ 	while (location && !gweather_location_has_coords (location)) {
+@@ -83,7 +87,11 @@ cal_config_weather_location_to_string (GBinding *binding,
+ 		GWeatherLocation *child = location;
+ 
+ 		location = gweather_location_get_parent (child);
++		#if GWEATHER_CHECK_VERSION(3, 91, 0)
++		g_object_ref (child);
++		#else
+ 		gweather_location_unref (child);
++		#endif
+ 		#else
+ 		location = gweather_location_get_parent (location);
+ 		#endif
+@@ -101,7 +109,9 @@ cal_config_weather_location_to_string (GBinding *binding,
+ 
+ 		string = g_strdup_printf ("%s/%s", lat_str, lon_str);
+ 
+-		#if GWEATHER_CHECK_VERSION(3, 39, 0)
++		#if GWEATHER_CHECK_VERSION(3, 91, 0)
++		g_object_ref (location);
++		#elif GWEATHER_CHECK_VERSION(3, 39, 0)
+ 		gweather_location_unref (location);
+ 		#endif
+ 	}
+@@ -134,7 +144,11 @@ cal_config_weather_find_location_by_coords (GWeatherLocation *start,
+ 		gweather_location_get_coords (location, &lat, &lon);
+ 
+ 		if (lat == latitude && lon == longitude) {
++			#if GWEATHER_CHECK_VERSION(3, 91, 0)
++			g_object_ref (location);
++			#else
+ 			gweather_location_ref (location);
++			#endif
+ 			return location;
+ 		}
+ 	}
+@@ -145,7 +159,11 @@ cal_config_weather_find_location_by_coords (GWeatherLocation *start,
+ 
+ 		result = cal_config_weather_find_location_by_coords (child, latitude, longitude);
+ 		if (result) {
++			#if GWEATHER_CHECK_VERSION(3, 91, 0)
++			g_object_ref (child);
++			#else
+ 			gweather_location_unref (child);
++			#endif
+ 			return result;
+ 		}
+ 	}
+@@ -154,7 +172,11 @@ cal_config_weather_find_location_by_coords (GWeatherLocation *start,
+ 	for (ii = 0; children[ii]; ii++) {
+ 		location = cal_config_weather_find_location_by_coords (children[ii], latitude, longitude);
+ 		if (location) {
++			#if GWEATHER_CHECK_VERSION(3, 91, 0)
++			g_object_ref (location);
++			#else
+ 			gweather_location_ref (location);
++			#endif
+ 			return location;
+ 		}
+ 	}
+@@ -320,8 +342,16 @@ cal_config_weather_insert_widgets (ESourceConfigBackend *backend,
+ 		G_BINDING_SYNC_CREATE,
+ 		cal_config_weather_string_to_location,
+ 		cal_config_weather_location_to_string,
++		#if GWEATHER_CHECK_VERSION(3, 91, 0)
++		g_object_ref (world),
++		#else
+ 		gweather_location_ref (world),
++		#endif
++		#if GWEATHER_CHECK_VERSION(3, 91, 0)
++		(GDestroyNotify) g_object_ref);
++		#else
+ 		(GDestroyNotify) gweather_location_unref);
++		#endif
+ 
+ 	e_binding_bind_property (
+ 		extension, "units",
+@@ -329,7 +359,9 @@ cal_config_weather_insert_widgets (ESourceConfigBackend *backend,
+ 		G_BINDING_BIDIRECTIONAL |
+ 		G_BINDING_SYNC_CREATE);
+ 
+-#if GWEATHER_CHECK_VERSION(3, 39, 0)
++#if GWEATHER_CHECK_VERSION(3, 91, 0)
++	g_object_ref (world);
++#elif GWEATHER_CHECK_VERSION(3, 39, 0)
+ 	gweather_location_unref (world);
+ #endif
+ }
+-- 
+2.35.1
+

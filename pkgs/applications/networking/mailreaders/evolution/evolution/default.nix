@@ -1,4 +1,5 @@
-{ lib, stdenv
+{ lib
+, stdenv
 , cmake
 , ninja
 , intltool
@@ -50,6 +51,12 @@ stdenv.mkDerivation rec {
     url = "mirror://gnome/sources/evolution/${lib.versions.majorMinor version}/${pname}-${version}.tar.xz";
     sha256 = "nBAQtBOGT5fE4VB96MWaNR9LMXT3DSIiig+dXjmz3pg=";
   };
+
+  patches = [
+    # Fix build with gweather4
+    # https://gitlab.gnome.org/GNOME/evolution/-/merge_requests/102
+    ./0001-M-102-Port-to-libgweather4.patch
+  ];
 
   nativeBuildInputs = [
     cmake
@@ -110,6 +117,7 @@ stdenv.mkDerivation rec {
     "-DWITH_SA_LEARN=${spamassassin}/bin/sa-learn"
     "-DWITH_BOGOFILTER=${bogofilter}/bin/bogofilter"
     "-DWITH_OPENLDAP=${openldap}"
+    "-DWITH_GWEATHER4=ON"
   ];
 
   requiredSystemFeatures = [
