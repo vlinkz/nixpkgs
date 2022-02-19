@@ -4,10 +4,8 @@
 , substituteAll
 , accountsservice
 , adwaita-icon-theme
-, clutter
-, clutter-gtk
 , colord
-, colord-gtk
+, colord-gtk4
 , cups
 , docbook-xsl-nons
 , fontconfig
@@ -27,7 +25,6 @@
 , gsound
 , gtk4
 , ibus
-, libcanberra-gtk3
 , libgnomekbd
 , libgtop
 , libgudev
@@ -45,7 +42,7 @@
 , mutter
 , networkmanager
 , networkmanagerapplet
-, libnma
+, libnma-gtk4
 , ninja
 , pkg-config
 , polkit
@@ -98,10 +95,8 @@ stdenv.mkDerivation rec {
   buildInputs = [
     accountsservice
     adwaita-icon-theme
-    clutter
-    clutter-gtk
     colord
-    colord-gtk
+    colord-gtk4
     libepoxy
     fontconfig
     gdk-pixbuf
@@ -118,12 +113,11 @@ stdenv.mkDerivation rec {
     gsound
     gtk4
     ibus
-    libcanberra-gtk3
     libgtop
     libgudev
     libadwaita
     libkrb5
-    libnma
+    libnma-gtk4
     libpulseaudio
     libpwquality
     librsvg
@@ -141,9 +135,19 @@ stdenv.mkDerivation rec {
     upower
   ];
 
-  postPatch = ''
-    chmod +x build-aux/meson/meson_post_install.py # patchShebangs requires executable file
-    patchShebangs build-aux/meson/meson_post_install.py
+  # postPatch = ''
+  #   scriptsToPatch=(
+  #     build-aux/meson/meson_post_install.py
+  #     build-aux/meson/find_xdg_file.py
+  #   )
+  #   # # patchShebangs requires executable file
+  #   # chmod +x "''${scriptsToPatch[@]}"
+  #   # patchShebangs "''${scriptsToPatch[@]}"
+  # '';
+
+  preConfigure = ''
+    # For ITS rules
+    addToSearchPath "XDG_DATA_DIRS" "${polkit.out}/share"
   '';
 
   preFixup = ''
