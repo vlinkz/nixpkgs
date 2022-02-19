@@ -18,12 +18,12 @@
 
 stdenv.mkDerivation rec {
   pname = "NetworkManager-fortisslvpn";
-  version = "1.3.90";
+  version = "1.2.10";
   name = "${pname}${if withGnome then "-gnome" else ""}-${version}";
 
   src = fetchurl {
     url = "mirror://gnome/sources/${pname}/${lib.versions.majorMinor version}/${pname}-${version}.tar.xz";
-    sha256 = "iEp0Mrs4rpyULglPI9Cj/rUEQyFTw9KGmrcaTdJE0Ps=";
+    sha256 = "1sw66cxgs4in4cjp1cm95c5ijsk8xbbmq4ykg2jwqwgz6cf2lr3s";
   };
 
   patches = [
