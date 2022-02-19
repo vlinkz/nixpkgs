@@ -13376,6 +13376,7 @@ with pkgs;
     vala_0_48
     vala_0_52
     vala_0_54
+    vala_0_56
     vala;
 
   vyper = with python3Packages; toPythonApplication vyper;
