@@ -4,6 +4,7 @@
 , cmark
 , appstream-glib
 , desktop-file-utils
+, fetchpatch
 , fetchurl
 , flatpak
 , gnome
@@ -47,6 +48,15 @@ stdenv.mkDerivation rec {
     url = "mirror://gnome/sources/${pname}/${lib.versions.major version}/${pname}-${version}.tar.xz";
     sha256 = "AtJ+Op2ChWWgcREWFb3zqyp1CzBb/469BwJXK3DuWnc=";
   };
+
+  patches = [
+    # Fix building docs
+    # https://gitlab.gnome.org/GNOME/gnome-builder/-/merge_requests/530
+    (fetchpatch {
+      url = "https://gitlab.gnome.org/GNOME/gnome-builder/-/commit/e2b369ec056ff43701803c5e5185fa2ac391d238.patch";
+      sha256 = "OI2CMtA0M9u6/5xmWm4i+bXOKDXmtYprCONNCU2aOj0=";
+    })
+  ];
 
   nativeBuildInputs = [
     appstream-glib
@@ -110,11 +120,6 @@ stdenv.mkDerivation rec {
 
   postPatch = ''
     patchShebangs build-aux/meson/post_install.py
-
-    # Fix building docs
-    # https://gitlab.gnome.org/GNOME/gnome-builder/-/merge_requests/530
-    substituteInPlace src/libide/lsp/ide-lsp-service.c \
-      --replace "[enum@Gio.SubprocessFlags]" "[flags@Gio.SubprocessFlags]"
   '';
 
   checkPhase = ''
