@@ -4,7 +4,6 @@
 , substituteAll
 , accountsservice
 , adwaita-icon-theme
-, cheese
 , clutter
 , clutter-gtk
 , colord
@@ -26,13 +25,13 @@
 , gnome
 , gsettings-desktop-schemas
 , gsound
-, gtk3
+, gtk4
 , ibus
 , libcanberra-gtk3
 , libgnomekbd
 , libgtop
 , libgudev
-, libhandy
+, libadwaita
 , libkrb5
 , libpulseaudio
 , libpwquality
@@ -99,7 +98,6 @@ stdenv.mkDerivation rec {
   buildInputs = [
     accountsservice
     adwaita-icon-theme
-    cheese
     clutter
     clutter-gtk
     colord
@@ -118,12 +116,12 @@ stdenv.mkDerivation rec {
     gnome-user-share # optional, sharing panel
     gsettings-desktop-schemas
     gsound
-    gtk3
+    gtk4
     ibus
     libcanberra-gtk3
     libgtop
     libgudev
-    libhandy
+    libadwaita
     libkrb5
     libnma
     libpulseaudio
