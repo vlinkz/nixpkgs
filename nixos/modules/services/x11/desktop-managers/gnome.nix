@@ -134,6 +134,7 @@ in
     )
     (mkRemovedOptionModule
       [ "services" "gnome" "experimental-features" "realtime-scheduling" ]
+      "Set `security.rtkit.enable = true;` to make realtime scheduling possible. (Still needs to be enabled using GSettings.)"
     )
   ];
 
