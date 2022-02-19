@@ -472,7 +472,6 @@ in
             gnome-maps
             gnome-music
             pkgs.gnome-photos
-            gnome-screenshot
             gnome-system-monitor
             gnome-weather
             nautilus
