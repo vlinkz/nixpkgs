@@ -59,6 +59,10 @@ stdenv.mkDerivation rec {
       src = ./fix-paths.patch;
       inherit tzdata;
     })
+
+    # Fix build with gweather4
+    # https://gitlab.gnome.org/GNOME/evolution-data-server/-/merge_requests/93
+    ./0001-M-93-Port-to-libgweather4.patch
   ];
 
   prePatch = ''
@@ -122,6 +126,7 @@ stdenv.mkDerivation rec {
     "-DCMAKE_SKIP_BUILD_RPATH=OFF"
     "-DINCLUDE_INSTALL_DIR=${placeholder "dev"}/include"
     "-DWITH_PHONENUMBER=ON"
+    "-DWITH_GWEATHER4=ON"
   ];
 
   passthru = {
