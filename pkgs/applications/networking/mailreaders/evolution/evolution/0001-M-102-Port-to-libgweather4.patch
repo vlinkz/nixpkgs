@@ -1,4 +1,4 @@
-From b90b937008090ce6547e37d2c20e70307730b513 Mon Sep 17 00:00:00 2001
+From 8566e6ebff7046fdcb72508c0aba20b5378788b9 Mon Sep 17 00:00:00 2001
 From: Jan Tojnar <jtojnar@gmail.com>
 Date: Sat, 19 Feb 2022 01:52:52 +0100
 Subject: [PATCH] M!102 - Port to libgweather4
@@ -181,7 +181,7 @@ index f4fb48c403..ff2cb92d2b 100644
  
  static gchar *
 diff --git a/src/modules/cal-config-weather/evolution-cal-config-weather.c b/src/modules/cal-config-weather/evolution-cal-config-weather.c
-index 423d6e2357..f36486b44b 100644
+index 423d6e2357..4f0973a8fe 100644
 --- a/src/modules/cal-config-weather/evolution-cal-config-weather.c
 +++ b/src/modules/cal-config-weather/evolution-cal-config-weather.c
 @@ -75,7 +75,11 @@ cal_config_weather_location_to_string (GBinding *binding,
@@ -201,7 +201,7 @@ index 423d6e2357..f36486b44b 100644
  
  		location = gweather_location_get_parent (child);
 +		#ifdef WITH_GWEATHER4
-+		g_object_ref (child);
++		g_object_unref (child);
 +		#else
  		gweather_location_unref (child);
 +		#endif
@@ -214,7 +214,7 @@ index 423d6e2357..f36486b44b 100644
  
 -		#if GWEATHER_CHECK_VERSION(3, 39, 0)
 +		#ifdef WITH_GWEATHER4
-+		g_object_ref (location);
++		g_object_unref (location);
 +		#elif GWEATHER_CHECK_VERSION(3, 39, 0)
  		gweather_location_unref (location);
  		#endif
@@ -236,7 +236,7 @@ index 423d6e2357..f36486b44b 100644
  		result = cal_config_weather_find_location_by_coords (child, latitude, longitude);
  		if (result) {
 +			#ifdef WITH_GWEATHER4
-+			g_object_ref (child);
++			g_object_unref (child);
 +			#else
  			gweather_location_unref (child);
 +			#endif
@@ -265,7 +265,7 @@ index 423d6e2357..f36486b44b 100644
  		gweather_location_ref (world),
 +		#endif
 +		#ifdef WITH_GWEATHER4
-+		(GDestroyNotify) g_object_ref);
++		g_object_unref);
 +		#else
  		(GDestroyNotify) gweather_location_unref);
 +		#endif
@@ -278,7 +278,7 @@ index 423d6e2357..f36486b44b 100644
  
 -#if GWEATHER_CHECK_VERSION(3, 39, 0)
 +#ifdef WITH_GWEATHER4
-+	g_object_ref (world);
++	g_object_unref (world);
 +#elif GWEATHER_CHECK_VERSION(3, 39, 0)
  	gweather_location_unref (world);
  #endif
