@@ -1,4 +1,4 @@
-From 4305785141436da92e82efe14b2f78f837eb0378 Mon Sep 17 00:00:00 2001
+From 4adf9032fd820414d9ebd12cc746fee1895cc910 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Javier=20Jard=C3=B3n?= <jjardon@gnome.org>
 Date: Sat, 8 Jan 2022 15:30:52 +0000
 Subject: [PATCH] M!93 - Port to libgweather4
@@ -8,13 +8,14 @@ Adds support for linking against gweather4 (pass -DWITH_GWEATHER4=ON).
 Co-Authored-By: Jan Tojnar <jtojnar@gmail.com>
 Closes https://gitlab.gnome.org/GNOME/evolution-data-server/-/merge_requests/93
 ---
- CMakeLists.txt                                  | 11 ++++++++++-
+ CMakeLists.txt                                  |  9 ++++++++-
+ config.h.in                                     |  3 +++
  .../backends/weather/e-cal-backend-weather.c    |  8 ++++++++
  .../backends/weather/e-weather-source.c         | 17 +++++++++++++++--
- 3 files changed, 33 insertions(+), 3 deletions(-)
+ 4 files changed, 34 insertions(+), 3 deletions(-)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 234f605be..f7fb2d2f8 100644
+index 234f605be..5182a4792 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -119,6 +119,7 @@ set(sqlite_minimum_version 3.7.17)
@@ -25,7 +26,7 @@ index 234f605be..f7fb2d2f8 100644
  set(libaccounts_glib_minimum_version 1.4)
  set(libsignon_glib_minimum_version 1.8)
  set(json_glib_minimum_version 1.0.4)
-@@ -755,10 +756,17 @@ endif(NOT have_addrinfo)
+@@ -755,7 +756,13 @@ endif(NOT have_addrinfo)
  add_printable_option(ENABLE_WEATHER "Build the weather calendar backend" ON)
  
  if(ENABLE_WEATHER)
@@ -40,27 +41,29 @@ index 234f605be..f7fb2d2f8 100644
  
  	set(CMAKE_REQUIRED_INCLUDES ${LIBGWEATHER_INCLUDE_DIRS})
  	set(CMAKE_REQUIRED_LIBRARIES ${LIBGWEATHER_LDFLAGS})
+diff --git a/config.h.in b/config.h.in
+index 4e79549ab..c087d2b04 100644
+--- a/config.h.in
++++ b/config.h.in
+@@ -197,6 +197,9 @@
+ /* gweather_info_new() has only one argument */
+ #cmakedefine HAVE_ONE_ARG_GWEATHER_INFO_NEW 1
+ 
++/* Defined when linking against gweather4. Cannot just use GWEATHER_CHECK_VERSION because 40.0 made the versions non-monotonic. */
++#cmakedefine WITH_GWEATHER4 1
 +
- 	CHECK_C_SOURCE_COMPILES("#define GWEATHER_I_KNOW_THIS_IS_UNSTABLE
- 				#include <libgweather/gweather.h>
- 				#undef GWEATHER_I_KNOW_THIS_IS_UNSTABLE
-@@ -767,6 +775,7 @@ if(ENABLE_WEATHER)
- 					gweather_info_new (NULL);
- 					return 0;
- 				}" HAVE_ONE_ARG_GWEATHER_INFO_NEW)
-+
- 	unset(CMAKE_REQUIRED_INCLUDES)
- 	unset(CMAKE_REQUIRED_LIBRARIES)
- endif(ENABLE_WEATHER)
+ /* evolution-alarm-notify - Define if using Canberra-GTK for sound */
+ #cmakedefine HAVE_CANBERRA 1
+ 
 diff --git a/src/calendar/backends/weather/e-cal-backend-weather.c b/src/calendar/backends/weather/e-cal-backend-weather.c
-index 72faccd62..cc5ebe410 100644
+index 72faccd62..c4999671f 100644
 --- a/src/calendar/backends/weather/e-cal-backend-weather.c
 +++ b/src/calendar/backends/weather/e-cal-backend-weather.c
 @@ -464,7 +464,11 @@ create_weather (ECalBackendWeather *cbw,
  	time_t			   update_time;
  	ICalTimezone		  *update_zone = NULL;
  	const GWeatherLocation    *location;
-+	#if GWEATHER_CHECK_VERSION(3, 91, 0)
++	#ifdef WITH_GWEATHER4
 +	GTimeZone                 *w_timezone;
 +	#else
  	const GWeatherTimezone    *w_timezone;
@@ -72,7 +75,7 @@ index 72faccd62..cc5ebe410 100644
  	/* use timezone of the location to determine date for which this is set */
  	location = gweather_info_get_location (report);
  	if (location && (w_timezone = gweather_location_get_timezone ((GWeatherLocation *) location)))
-+		#if GWEATHER_CHECK_VERSION(3, 91, 0)
++		#ifdef WITH_GWEATHER4
 +		update_zone = i_cal_timezone_get_builtin_timezone (g_time_zone_get_identifier (w_timezone));
 +		#else
  		update_zone = i_cal_timezone_get_builtin_timezone (gweather_timezone_get_tzid ((GWeatherTimezone *) w_timezone));
@@ -81,14 +84,14 @@ index 72faccd62..cc5ebe410 100644
  	if (!update_zone)
  		update_zone = i_cal_timezone_get_utc_timezone ();
 diff --git a/src/calendar/backends/weather/e-weather-source.c b/src/calendar/backends/weather/e-weather-source.c
-index 3052d034c..642d3fffc 100644
+index 3052d034c..031b7a6ad 100644
 --- a/src/calendar/backends/weather/e-weather-source.c
 +++ b/src/calendar/backends/weather/e-weather-source.c
 @@ -39,8 +39,11 @@ weather_source_dispose (GObject *object)
  	EWeatherSourcePrivate *priv;
  
  	priv = E_WEATHER_SOURCE (object)->priv;
-+	#if GWEATHER_CHECK_VERSION(3, 91, 0)
++	#ifdef WITH_GWEATHER4
 +	g_clear_object (&priv->location);
 +	#else
  	g_clear_pointer (&priv->location, gweather_location_unref);
@@ -101,7 +104,7 @@ index 3052d034c..642d3fffc 100644
  		gweather_location_get_coords (location, &lat, &lon);
  
  		if (lat == latitude && lon == longitude) {
-+			#if GWEATHER_CHECK_VERSION(3, 91, 0)
++			#ifdef WITH_GWEATHER4
 +			g_object_ref (location);
 +			#else
  			gweather_location_ref (location);
@@ -113,7 +116,7 @@ index 3052d034c..642d3fffc 100644
  
  		result = weather_source_find_location_by_coords (child, latitude, longitude);
  		if (result) {
-+			#if GWEATHER_CHECK_VERSION(3, 91, 0)
++			#ifdef WITH_GWEATHER4
 +			g_object_unref (child);
 +			#else
  			gweather_location_unref (child);
@@ -126,7 +129,7 @@ index 3052d034c..642d3fffc 100644
  	}
  
 -#if GWEATHER_CHECK_VERSION(3, 39, 0)
-+#if GWEATHER_CHECK_VERSION(3, 91, 0)
++#ifdef WITH_GWEATHER4
 +	g_object_unref (world);
 +#elif GWEATHER_CHECK_VERSION(3, 39, 0)
  	gweather_location_unref (world);
