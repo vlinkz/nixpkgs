@@ -1,4 +1,4 @@
-From 59b8663ba971de6b7833efac6e4b427128787266 Mon Sep 17 00:00:00 2001
+From b90b937008090ce6547e37d2c20e70307730b513 Mon Sep 17 00:00:00 2001
 From: Jan Tojnar <jtojnar@gmail.com>
 Date: Sat, 19 Feb 2022 01:52:52 +0100
 Subject: [PATCH] M!102 - Port to libgweather4
@@ -8,9 +8,10 @@ Adds support for linking against gweather4 (pass -DWITH_GWEATHER4=ON).
 Closes https://gitlab.gnome.org/GNOME/evolution/-/merge_requests/102
 ---
  CMakeLists.txt                                | 10 ++++-
+ config.h.in                                   |  3 ++
  .../e-weather-location-entry.c                | 44 +++++++++++++++++++
  .../evolution-cal-config-weather.c            | 36 ++++++++++++++-
- 3 files changed, 87 insertions(+), 3 deletions(-)
+ 4 files changed, 90 insertions(+), 3 deletions(-)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
 index 7247d65f16..1ba2165b4d 100644
@@ -40,21 +41,35 @@ index 7247d65f16..1ba2165b4d 100644
  	pkg_check_modules_for_option(ENABLE_WEATHER "weather calendar" GEO geocode-glib-1.0>=${geocode_glib_minimum_version})
  endif(ENABLE_WEATHER)
  
+diff --git a/config.h.in b/config.h.in
+index 881641355a..2b520a96bd 100644
+--- a/config.h.in
++++ b/config.h.in
+@@ -93,6 +93,9 @@
+ /* When defined GSpell usage is enabled */
+ #cmakedefine HAVE_GSPELL 1
+ 
++/* Defined when linking against gweather4. Cannot just use GWEATHER_CHECK_VERSION because 40.0 made the versions non-monotonic. */
++#cmakedefine WITH_GWEATHER4 1
++
+ /* Source code highlighting utility */
+ #cmakedefine HIGHLIGHT_COMMAND "@HIGHLIGHT_COMMAND@"
+ 
 diff --git a/src/modules/cal-config-weather/e-weather-location-entry.c b/src/modules/cal-config-weather/e-weather-location-entry.c
-index f4fb48c403..a1364920a3 100644
+index f4fb48c403..ff2cb92d2b 100644
 --- a/src/modules/cal-config-weather/e-weather-location-entry.c
 +++ b/src/modules/cal-config-weather/e-weather-location-entry.c
 @@ -125,9 +125,17 @@ finalize (GObject *object)
  	priv = entry->priv;
  
  	if (priv->location)
-+		#if GWEATHER_CHECK_VERSION(3, 91, 0)
++		#ifdef WITH_GWEATHER4
 +		g_object_unref (priv->location);
 +		#else
  		gweather_location_unref (priv->location);
 +		#endif
  	if (priv->top)
-+		#if GWEATHER_CHECK_VERSION(3, 91, 0)
++		#ifdef WITH_GWEATHER4
 +		g_object_unref (priv->top);
 +		#else
  		gweather_location_unref (priv->top);
@@ -66,7 +81,7 @@ index f4fb48c403..a1364920a3 100644
  	priv = entry->priv;
  
  	if (priv->location)
-+		#if GWEATHER_CHECK_VERSION(3, 91, 0)
++		#ifdef WITH_GWEATHER4
 +		g_object_unref (priv->location);
 +		#else
  		gweather_location_unref (priv->location);
@@ -78,7 +93,7 @@ index f4fb48c403..a1364920a3 100644
  		priv->custom_text = FALSE;
  		g_free (name);
  	} else if (loc) {
-+		#if GWEATHER_CHECK_VERSION(3, 91, 0)
++		#ifdef WITH_GWEATHER4
 +		priv->location = g_object_ref (loc);
 +		#else
  		priv->location = gweather_location_ref (loc);
@@ -90,7 +105,7 @@ index f4fb48c403..a1364920a3 100644
  				    -1);
  		if (gweather_location_equal (loc, cmploc)) {
  			set_location_internal (entry, model, &iter, NULL);
-+			#if GWEATHER_CHECK_VERSION(3, 91, 0)
++			#ifdef WITH_GWEATHER4
 +			g_object_unref (cmploc);
 +			#else
  			gweather_location_unref (cmploc);
@@ -98,7 +113,7 @@ index f4fb48c403..a1364920a3 100644
  			return;
  		}
  
-+		#if GWEATHER_CHECK_VERSION(3, 91, 0)
++		#ifdef WITH_GWEATHER4
 +		g_object_unref (cmploc);
 +		#else
  		gweather_location_unref (cmploc);
@@ -110,7 +125,7 @@ index f4fb48c403..a1364920a3 100644
  	g_return_val_if_fail (E_WEATHER_IS_LOCATION_ENTRY (entry), NULL);
  
  	if (entry->priv->location)
-+		#if GWEATHER_CHECK_VERSION(3, 91, 0)
++		#ifdef WITH_GWEATHER4
 +		return g_object_ref (entry->priv->location);
 +		#else
  		return gweather_location_ref (entry->priv->location);
@@ -122,9 +137,9 @@ index f4fb48c403..a1364920a3 100644
  
  		cmpcode = gweather_location_get_code (cmploc);
  		if (!cmpcode || strcmp (cmpcode, code) != 0) {
-+			#if GWEATHER_CHECK_VERSION(3, 91, 0)
++			#ifdef WITH_GWEATHER4
 +			g_object_unref (cmploc);
-+				#else
++			#else
  			gweather_location_unref (cmploc);
 +			#endif
  			continue;
@@ -133,9 +148,9 @@ index f4fb48c403..a1364920a3 100644
  		if (city_name) {
  			cmpname = gweather_location_get_city_name (cmploc);
  			if (!cmpname || strcmp (cmpname, city_name) != 0) {
-+				#if GWEATHER_CHECK_VERSION(3, 91, 0)
++				#ifdef WITH_GWEATHER4
 +				g_object_unref (cmploc);
-+					#else
++				#else
  				gweather_location_unref (cmploc);
 +				#endif
  				g_free (cmpname);
@@ -145,9 +160,9 @@ index f4fb48c403..a1364920a3 100644
  		}
  
  		set_location_internal (entry, model, &iter, NULL);
-+		#if GWEATHER_CHECK_VERSION(3, 91, 0)
++		#ifdef WITH_GWEATHER4
 +		g_object_unref (cmploc);
-+			#else
++		#else
  		gweather_location_unref (cmploc);
 +		#endif
  		return TRUE;
@@ -157,7 +172,7 @@ index f4fb48c403..a1364920a3 100644
  		break;
  	}
  
-+	#if GWEATHER_CHECK_VERSION(3, 91, 0)
++	#ifdef WITH_GWEATHER4
 +	g_clear_object (&child);
 +	#else
  	g_clear_pointer (&child, gweather_location_unref);
@@ -166,14 +181,14 @@ index f4fb48c403..a1364920a3 100644
  
  static gchar *
 diff --git a/src/modules/cal-config-weather/evolution-cal-config-weather.c b/src/modules/cal-config-weather/evolution-cal-config-weather.c
-index 423d6e2357..5efd142791 100644
+index 423d6e2357..f36486b44b 100644
 --- a/src/modules/cal-config-weather/evolution-cal-config-weather.c
 +++ b/src/modules/cal-config-weather/evolution-cal-config-weather.c
 @@ -75,7 +75,11 @@ cal_config_weather_location_to_string (GBinding *binding,
  	location = g_value_get_boxed (source_value);
  	#if GWEATHER_CHECK_VERSION(3, 39, 0)
  	if (location)
-+		#if GWEATHER_CHECK_VERSION(3, 91, 0)
++		#ifdef WITH_GWEATHER4
 +		g_object_ref (location);
 +		#else
  		gweather_location_ref (location);
@@ -185,7 +200,7 @@ index 423d6e2357..5efd142791 100644
  		GWeatherLocation *child = location;
  
  		location = gweather_location_get_parent (child);
-+		#if GWEATHER_CHECK_VERSION(3, 91, 0)
++		#ifdef WITH_GWEATHER4
 +		g_object_ref (child);
 +		#else
  		gweather_location_unref (child);
@@ -198,7 +213,7 @@ index 423d6e2357..5efd142791 100644
  		string = g_strdup_printf ("%s/%s", lat_str, lon_str);
  
 -		#if GWEATHER_CHECK_VERSION(3, 39, 0)
-+		#if GWEATHER_CHECK_VERSION(3, 91, 0)
++		#ifdef WITH_GWEATHER4
 +		g_object_ref (location);
 +		#elif GWEATHER_CHECK_VERSION(3, 39, 0)
  		gweather_location_unref (location);
@@ -208,7 +223,7 @@ index 423d6e2357..5efd142791 100644
  		gweather_location_get_coords (location, &lat, &lon);
  
  		if (lat == latitude && lon == longitude) {
-+			#if GWEATHER_CHECK_VERSION(3, 91, 0)
++			#ifdef WITH_GWEATHER4
 +			g_object_ref (location);
 +			#else
  			gweather_location_ref (location);
@@ -220,7 +235,7 @@ index 423d6e2357..5efd142791 100644
  
  		result = cal_config_weather_find_location_by_coords (child, latitude, longitude);
  		if (result) {
-+			#if GWEATHER_CHECK_VERSION(3, 91, 0)
++			#ifdef WITH_GWEATHER4
 +			g_object_ref (child);
 +			#else
  			gweather_location_unref (child);
@@ -232,7 +247,7 @@ index 423d6e2357..5efd142791 100644
  	for (ii = 0; children[ii]; ii++) {
  		location = cal_config_weather_find_location_by_coords (children[ii], latitude, longitude);
  		if (location) {
-+			#if GWEATHER_CHECK_VERSION(3, 91, 0)
++			#ifdef WITH_GWEATHER4
 +			g_object_ref (location);
 +			#else
  			gweather_location_ref (location);
@@ -244,12 +259,12 @@ index 423d6e2357..5efd142791 100644
  		G_BINDING_SYNC_CREATE,
  		cal_config_weather_string_to_location,
  		cal_config_weather_location_to_string,
-+		#if GWEATHER_CHECK_VERSION(3, 91, 0)
++		#ifdef WITH_GWEATHER4
 +		g_object_ref (world),
 +		#else
  		gweather_location_ref (world),
 +		#endif
-+		#if GWEATHER_CHECK_VERSION(3, 91, 0)
++		#ifdef WITH_GWEATHER4
 +		(GDestroyNotify) g_object_ref);
 +		#else
  		(GDestroyNotify) gweather_location_unref);
@@ -262,7 +277,7 @@ index 423d6e2357..5efd142791 100644
  		G_BINDING_SYNC_CREATE);
  
 -#if GWEATHER_CHECK_VERSION(3, 39, 0)
-+#if GWEATHER_CHECK_VERSION(3, 91, 0)
++#ifdef WITH_GWEATHER4
 +	g_object_ref (world);
 +#elif GWEATHER_CHECK_VERSION(3, 39, 0)
  	gweather_location_unref (world);
