@@ -96,6 +96,7 @@ stdenv.mkDerivation (finalAttrs: {
   };
 
   patches = [
+    ./icon-theme-directory-identity.patch
     (fetchpatch {
       name = "fix-32bit-VkImage-null.patch";
       url = "https://gitlab.gnome.org/GNOME/gtk/-/commit/10d43de8f4f942cb591ada3103474bd7213425f1.patch";

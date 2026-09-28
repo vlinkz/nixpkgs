@@ -1,0 +1,33 @@
+diff --git a/gtk/gtkicontheme.c b/gtk/gtkicontheme.c
+--- a/gtk/gtkicontheme.c
++++ b/gtk/gtkicontheme.c
+@@ -417,6 +417,8 @@ typedef struct
+ {
+   char *dir;
+   time_t mtime;
++  dev_t device;
++  ino_t inode;
+   GtkIconCache *cache;
+   gboolean exists;
+ } IconThemeDirMtime;
+@@ -1671,2 +1673,4 @@ insert_theme (GtkIconTheme *self,
+           dir_mtime.mtime = stat_buf.st_mtime;
++          dir_mtime.device = stat_buf.st_dev;
++          dir_mtime.inode = stat_buf.st_ino;
+           dir_mtime.exists = TRUE;
+@@ -1893,2 +1897,4 @@ load_themes (GtkIconTheme *self)
+       dir_mtime->mtime = stat_buf.st_mtime;
++      dir_mtime->device = stat_buf.st_dev;
++      dir_mtime->inode = stat_buf.st_ino;
+       dir_mtime->exists = TRUE;
+@@ -2637,7 +2643,9 @@ rescan_themes (GtkIconTheme *self)
+-      /* dir mtime didn't change */
++      /* dir identity and mtime didn't change */
+       if (stat_res == 0 && dir_mtime->exists &&
+           S_ISDIR (stat_buf.st_mode) &&
++          dir_mtime->device == stat_buf.st_dev &&
++          dir_mtime->inode == stat_buf.st_ino &&
+           dir_mtime->mtime == stat_buf.st_mtime)
+         continue;
+       /* didn't exist before, and still doesn't */
+       if (!dir_mtime->exists &&
