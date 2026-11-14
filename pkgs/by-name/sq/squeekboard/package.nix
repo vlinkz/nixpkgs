@@ -73,6 +73,11 @@ stdenv.mkDerivation rec {
     feedbackd
   ];
 
+  postPatch = ''
+    substituteInPlace src/vkeyboard.rs \
+      --replace-fail "fn close(fd: i32);" "fn close(fd: i32) -> i32;"
+  '';
+
   passthru.tests.phosh = nixosTests.phosh;
 
   meta = {
